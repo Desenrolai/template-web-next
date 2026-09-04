@@ -1,9 +1,42 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
+/*
+ * Cor de MARCA e cor que CARREGA TEXTO são coisas diferentes.
+ *
+ * O coral da marca (#F0503C) não tem par que passe em AA: 3,55:1 sobre papel e
+ * 4,26:1 sobre carvão. Escurecê-lo melhora um lado e piora o outro — não existe
+ * um único tom que sirva para os dois. Por isso a marca é só identidade visual
+ * (barras, selos, ícones decorativos) e o texto/ação usa a rampa abaixo,
+ * escolhida por superfície.
+ *
+ * Os contrastes são MEDIDOS pelo teste em app/theme/contrast.test.ts a partir
+ * destes valores — não use fallback `var(--x, #hex)`, que vira uma segunda
+ * fonte de cor invisível ao teste.
+ */
 @theme {
-  --color-primary: #7b68ee;
-  --color-primary-dark: #2e0c69;
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
+  /* ── Superfícies ─────────────────────────────────────────────────────── */
+  --color-paper: #ffffff;
+  --color-carbon: #262626;
+
+  /* ── Texto ───────────────────────────────────────────────────────────── */
+  --color-ink-on-paper: #262626;
+  --color-ink-on-carbon: #ffffff;
+
+  /* ── Marca — identidade visual. NUNCA carrega texto. ──────────────────── */
+  --color-brand: #f0503c;
+
+  /* ── Ação — rampa medida, uma por superfície ──────────────────────────── */
+  --color-action-on-paper: #ce3b27;
+  --color-action-on-carbon: #fc624d;
+  --color-action-on-carbon-hover: #ff6f58;
+
+  /* ── Estado ──────────────────────────────────────────────────────────── */
+  --color-success: #15803d;
+  --color-warning: #a16207;
+  --color-error: #b91c1c;
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink-on-paper);
 }
