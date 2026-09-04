@@ -8,8 +8,31 @@ Template base para frontends web da Desenrolai. Gerado pelo forge em `forge.dese
 - **TypeScript 6** em modo strict
 - **Tailwind CSS v4** (`@import "tailwindcss"` + `@theme` — não há `tailwind.config.ts`)
 - **Vitest 4** + Testing Library
-- **ESLint 9** (flat config) + Prettier
+- **ESLint 9** (flat config) + Prettier — ver abaixo por que não é o 10
 - **Node 24 LTS**
+
+### Por que `eslint` está em `^9.39.5` e não em `^10`
+
+Não é desleixo, e **subir às cegas quebra o lint**. `eslint-config-next@16.3.4` arrasta
+`eslint-plugin-react`, `eslint-plugin-jsx-a11y` e `eslint-plugin-import`, e **nenhuma
+versão publicada das três — nem prerelease — declara peer `^10`**. Com ESLint 10 o lint
+morre assim:
+
+```
+TypeError: contextOrFilename.getFilename is not a function
+```
+
+(`context.getFilename()` foi removida no ESLint 10 e os plugins ainda a usam.)
+
+O gatilho para reavaliar é **`eslint-plugin-jsx-a11y` publicar peer `^10`**, não uma data:
+
+```bash
+npm view eslint-plugin-jsx-a11y peerDependencies
+```
+
+A alternativa — dropar o `eslint-config-next` e montar a flat config à mão — custa perder
+o lint de acessibilidade (`jsx-a11y`) e passar a manter a config a cada major do Next.
+Decisão registrada na ADR-0037.
 
 ## Começando
 
