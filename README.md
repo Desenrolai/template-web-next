@@ -1,12 +1,15 @@
-# desenrolai-web-template
+# template-web-next
 
 Template base para frontends web da Desenrolai. Gerado pelo forge em `forge.desenrol.ai`.
 
 ## Stack
 
-- Next.js 14 (App Router) + TypeScript strict
-- Tailwind CSS v4 (`@import "tailwindcss"` + `@theme`)
-- Node 22
+- **Next.js 16** (App Router, Turbopack) + **React 19**
+- **TypeScript 6** em modo strict
+- **Tailwind CSS v4** (`@import "tailwindcss"` + `@theme` — não há `tailwind.config.ts`)
+- **Vitest 4** + Testing Library
+- **ESLint 9** (flat config) + Prettier
+- **Node 24 LTS**
 
 ## Começando
 
@@ -20,12 +23,47 @@ npm run dev
 
 ## Scripts
 
-| Comando | Descrição |
-|---------|-----------|
-| `npm run dev` | Servidor de desenvolvimento |
-| `npm run build` | Build de produção (standalone) |
-| `npm run start` | Inicia o servidor de produção |
-| `npm run lint` | ESLint |
+| Comando             | Descrição                                                         |
+| ------------------- | ----------------------------------------------------------------- |
+| `npm run dev`       | Servidor de desenvolvimento                                       |
+| `npm run build`     | Build de produção (standalone)                                    |
+| `npm run start`     | Inicia o servidor de produção                                     |
+| `npm run lint`      | ESLint                                                            |
+| `npm run format`    | Prettier (check) — `format:write` corrige                         |
+| `npm run typecheck` | `tsc --noEmit`                                                    |
+| `npm test`          | Vitest (uma passada) — `test:watch` e `test:coverage` disponíveis |
+
+## Cor de marca ≠ cor que carrega texto
+
+O coral da marca (`--color-brand`, `#F0503C`) **não tem par que passe em AA**: 3,55:1 sobre
+papel e 4,26:1 sobre carvão. Escurecê-lo melhora um lado e piora o outro — não existe um
+tom único que sirva para as duas superfícies.
+
+Por isso o tema em `app/globals.css` separa:
+
+- **marca** — `--color-brand`, só identidade visual (barras, selos, ícones decorativos);
+- **ação/texto** — rampa medida, uma cor por superfície:
+
+| Token                                      | Superfície                 | Contraste medido |
+| ------------------------------------------ | -------------------------- | ---------------- |
+| `--color-action-on-paper` `#CE3B27`        | `--color-paper` `#FFFFFF`  | 4,91:1           |
+| `--color-action-on-carbon` `#FC624D`       | `--color-carbon` `#262626` | 5,04:1           |
+| `--color-action-on-carbon-hover` `#FF6F58` | `--color-carbon`           | 5,52:1           |
+
+Os pares que a UI usa estão declarados em `app/theme/pairs.ts` e o teste
+`app/theme/contrast.test.ts` **calcula** a razão de cada par a partir do CSS — renomear ou
+escurecer um token quebra o teste, não só o visual. O mesmo teste inclui um caso de
+controle provando que a marca reprova em AA nas duas superfícies (é o motivo da separação
+existir) e uma guarda contra `var(--token, #fallback)`: o fallback é uma **segunda** fonte
+de cor, invisível ao teste, que drifta em silêncio.
+
+## Pool de teste dentro de container
+
+`os.cpus()` reporta as CPUs do **host**, não o limite do cgroup. Dimensionar o pool do
+Vitest por ele cria workers demais e o job morre por pressão de recurso **com todos os
+testes passando**. `tooling/cgroup-cpus.ts` lê `/sys/fs/cgroup/cpu.max` (v2, com fallback
+para `cpu.cfs_quota_us`/`cpu.cfs_period_us` do v1) e alimenta `maxWorkers` em
+`vitest.config.ts`.
 
 ## Health check
 
@@ -33,7 +71,9 @@ npm run dev
 
 ## Deploy
 
-A imagem Docker é gerada e publicada automaticamente no GHCR via CI ao fazer push na branch padrão.
+Imagem multi-stage sobre `node:24-alpine`, rodando como **uid 1001** e compatível com
+`readOnlyRootFilesystem: true` — que é como o forge sobe o pod. Publicada no GHCR pelo CI
+ao dar push na branch padrão:
 
 ```
 ghcr.io/desenrolai/<nome-do-repo>:main
